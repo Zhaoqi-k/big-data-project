@@ -1,3 +1,9 @@
-**Big Data AI Club 2024-2025 @ Lawrenceville!**
-
-Welcome to out exciting project! To run this code, please git pull to your local, and insert your own API key in the .env file. The frontend is contained in the big-data-test-app directory, while the flask backend is contained within the flask-backend directory.
+This project is designed to:
+1. site 1: interim feedback
+    a. output summaries and suggestions based on student interims (upload as pdf)
+    b. ask for student feedback on what helped their improvement
+    c. output suggestions for studying habits based on other students' feedback
+2. site 2: course selection
+    a. add tags to courses (physics, econ, etc)
+    b. add places for students to submit feedback about the courses (eg. avg nightly workload, suggestions, etc)
+    c. 
