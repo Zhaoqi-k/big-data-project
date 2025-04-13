@@ -68,6 +68,7 @@ def analyze_comments():
 
     file = request.files["file"]
     student_id = request.form.get("student_id")
+    grad_date = datetime(request.form.get("graduation_date"))
     if not student_id:
         return jsonify({"error": "No student ID provided"}), 400
     habits = request.form.get("habits")
@@ -105,7 +106,8 @@ def analyze_comments():
             supabase.table("student_history").insert({
                 "student_id": student_id,
                 "date": datetime.now().isoformat(),
-                "analysis": response.text.strip()
+                "analysis": response.text.strip(),
+                "purge_after": grad_date
             }).execute()
 
             logging.debug(f"Cleaned Response from Gemini: {response}")
