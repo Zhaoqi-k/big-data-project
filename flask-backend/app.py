@@ -124,13 +124,30 @@ def analyze_comments():
         except Exception as e:
             logging.error(f"An error occurred: {str(e)}")
             return jsonify({"error": str(e)}), 500
+        finally:
+            if os.path.exists(filepath):
+                os.remove(filepath)
 
 app.route("/feedback", methods=["POST"])
-def get_feedback():
-    pass
-
 def save_feedback():
-    pass
+    habits = request.form.get("habits")
+    for habit, rating in habits.items():
+        supabase.table("study_habits").insert({
+            "habit": habit,
+            "rating": rating,
+            "date": datetime.now().isoformat()
+        })
+
+def get_feedback():
+    response = supabase.table("study_habits") \
+        .select("habit", "rating") \
+        .order("rating", desc=True) \
+        .limit(5) \
+        .execute()
+    if response.data:
+        return "Useful study habits include: ", [habit["habit"] for habit in response.data]
+    return "Not suggestions available yet"
 
 if __name__ == '__main__':
+    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.run(debug=True)
