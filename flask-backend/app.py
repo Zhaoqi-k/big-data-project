@@ -6,9 +6,8 @@ from flask_caching import Cache
 from flask_cors import CORS
 
 from PyPDF2 import PdfReader
-from datetime import datetime
+from datetime import datetime, date
 from supabase import create_client, Client
-from datetime import datetime
 from werkzeug.utils import secure_filename
 import json
 import google.generativeai as genai
@@ -68,7 +67,8 @@ def analyze_comments():
 
     file = request.files["file"]
     student_id = request.form.get("student_id")
-    grad_date = datetime(request.form.get("graduation_date"))
+    graduation_year = int(request.form.get("graduation_year"))
+    purge_date = date(graduation_year, 7, 1)
     if not student_id:
         return jsonify({"error": "No student ID provided"}), 400
     habits = request.form.get("habits")
@@ -107,7 +107,7 @@ def analyze_comments():
                 "student_id": student_id,
                 "date": datetime.now().isoformat(),
                 "analysis": response.text.strip(),
-                "purge_after": grad_date
+                "purge_after": purge_date.isoformat()
             }).execute()
 
             logging.debug(f"Cleaned Response from Gemini: {response}")
