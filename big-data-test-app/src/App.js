@@ -96,6 +96,7 @@ function App() {
               <li key={index}>{area}</li>
             ))}
           </ul>
+          {/*
           <div style={{
             display: "flex",
             justifyContent: "center",
@@ -117,7 +118,9 @@ function App() {
             ))}
           </div>
           {emojiFeedback && <p style={{ textAlign: "center", marginTop: "5px" }}>You reacted with: {emojiFeedback}</p>}
-        </div>
+          */}
+        </div> 
+        
       )}
     </div>
   );
