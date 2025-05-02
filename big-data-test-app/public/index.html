@@ -24,20 +24,39 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>React App</title>
+    <title>Student Interim Analysis</title>
+    <style>
+      body {font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;}
+      .container {margin-top: 30px;}
+      .form-group {margin-bottom: 15px;}
+      .results {margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 5px;}
+      .habit-rating {display: flex; justify-content: space-between; margin-bottom: 10px;}
+      .hidden {display: none;}
+    </style>
   </head>
+
   <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+    <h1>Student Interim Analysis</h1>
+    <div class="container">
+      <!-- students upload interim comments -->
+      <div id="upload-section">
+        <h2>Upload pdf of interim report here</h2>
+        <form id="upload-form">
+          <!-- input student id -->
+          <div class="form-group">
+            <label for="student_id">Student ID: </label>
+            <input type="text" id="student_id" name="student_id" required>
+          </div>
+          <!-- upload pdf file -->
+          <div class="form-group">
+            <label for="file">Upload PDF: </label>
+            <input type="file" id="file" name="file" accept=".pdf" required>
+          </div>
+          <button type="submit">Analyze</button>
+        </form>
+      </div>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    </div>
+  
   </body>
 </html>
