@@ -71,7 +71,6 @@ def analyze_comments():
     purge_date = date(graduation_year, 7, 1)
     if not student_id:
         return jsonify({"error": "No student ID provided"}), 400
-    habits = request.form.get("habits")
     
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -93,24 +92,25 @@ def analyze_comments():
         - **2 areas to improve**
         - **how they have improved based on their previous comments**
         
+        Return the response in JSON format with keys: "strengths", "areas_for_improvement", "historical_analysis".
         """
 
         try:
             # Call Gemini AI
             response = model.generate_content(prompt)
-            #response_text = response.text.strip()
+            response_text = response.text.strip()
 
-            #response_text = response_text.replace("```json", "").replace("```", "").strip()
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
             
             # Save student history to supabase
             supabase.table("student_history").insert({
                 "student_id": student_id,
                 "date": datetime.now().isoformat(),
-                "analysis": response.text.strip(),
+                "analysis": response_text,
                 "purge_after": purge_date.isoformat()
             }).execute()
 
-            logging.debug(f"Cleaned Response from Gemini: {response}")
+            logging.debug(f"Cleaned Response from Gemini: {response_text}")
 
             response_json = json.loads(response)
 
