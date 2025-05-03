@@ -87,12 +87,15 @@ def analyze_comments():
 
         Student History: {history.data if history.data else "No history"}
 
-        Provide a **concise 75-word student feedback report** with:
+        Provide a **concise 75 to 150 word student feedback report** with:
         - **2 strengths of student**
         - **2 areas to improve**
         - **how they have improved based on their previous comments**
         
-        Return the response in JSON format with keys: "strengths", "areas_for_improvement", "historical_analysis".
+        Return the response in JSON formatted as:
+        "strengths": ["", ""],
+        "areas_for_improvement": ["", ""], 
+        "historical_analysis": [""]
         """
 
         try:

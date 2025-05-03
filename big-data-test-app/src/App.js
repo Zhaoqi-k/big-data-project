@@ -2,20 +2,31 @@ import React, { useState } from "react";
 import axios from "axios";
 
 function App() {
-  const [reportCard, setReportCard] = useState(""); // Single input
+  const [reportCard, setReportCard] = useState(null); // Single input
   const [feedback, setFeedback] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [emojiFeedback, setEmojiFeedback] = useState(null);
+  //const [emojiFeedback, setEmojiFeedback] = useState(null);
 
   const handleAnalyze = async () => {
     setLoading(true);
     setError(null);
     setFeedback(null);
 
+    if (!reportCard) {
+      setError("Please upload a PDF file");
+      setLoading(false);
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", reportCard);
+
     try {
-      const response = await axios.post("http://127.0.0.1:5000/analyze", {
-        text: reportCard, // Send single text input
+      const response = await axios.post("http://127.0.0.1:5000/analyze", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        }
       });
 
       console.log("Response received:", response.data);
@@ -40,10 +51,10 @@ function App() {
       fontFamily: "Arial, sans-serif",
     }}>
       <h1 style={{ color: "#e60000", marginBottom: "20px" }}>AI Report Card Analysis</h1>
-      <textarea
-        value={reportCard}
-        onChange={(e) => setReportCard(e.target.value)}
-        placeholder="Paste the student's report card here..."
+      <input
+        type="file"
+        accept="pdf"
+        onChange={(e) => setReportCard(e.target.files[0])}
         rows={6}
         cols={50}
         style={{
@@ -84,18 +95,20 @@ function App() {
           position: "relative"
         }}>
           <h3 style={{ color: "#e60000" }}>AI Feedback</h3>
-          <p><strong>Strengths:</strong></p>
+          <h4><strong>Strengths:</strong></h4>
           <ul>
             {feedback.strengths.map((strength, index) => (
               <li key={index}>{strength}</li>
             ))}
           </ul>
-          <p><strong>Areas to Improve:</strong></p>
+          <h4><strong>Areas for Improvement:</strong></h4>
           <ul>
-            {feedback.areas_to_improve.map((area, index) => (
+            {feedback.areas_for_improvement.map((area, index) => (
               <li key={index}>{area}</li>
             ))}
           </ul>
+          <h4><strong>Progress from Previous Years:</strong></h4>
+          <p>{historical_analysis}</p>
           {/*
           <div style={{
             display: "flex",
