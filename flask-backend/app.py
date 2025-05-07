@@ -81,7 +81,7 @@ def analyze_comments():
     purge_date = date(graduation_year, 7, 1)
     if not student_id:
         return jsonify({"error": "No student ID provided"}), 400
-    namespace = uuid.UUID("")
+    namespace = uuid.UUID(os.getenv("my_uuid"))
     encrypted_id = str(uuid.uuid5(namespace, student_id))
     
     if file and allowed_file(file.filename):
@@ -118,7 +118,7 @@ def analyze_comments():
         Your job is to:
         1. Infer which course is which subject in the student midterm from the subject abbreviation. If the subject abbreviations do not match, leave the subject blank.
         2. Identify clear patterns or changes in student performance, skills, and behavior.
-        3. Return a concise structured JSON with
+        3. Return a concise structured JSON with:
         - "subject": the subject from the list given above
         - "progression_summary": 3-5 sentence summary of how the student has changed from previous comments
         - "focus_recommendation": 1-3 skills or behaviors to improve on
@@ -134,7 +134,7 @@ def analyze_comments():
             
             # Save student history to supabase
             supabase.table("student_history").insert({
-                "student_id": student_id,
+                "encrypted_id": encrypted_id,
                 "date": datetime.now().isoformat(),
                 "analysis": response_text,
                 "purge_after": purge_date.isoformat()
