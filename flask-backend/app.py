@@ -1,3 +1,6 @@
+# construct new prompt for llm
+# use uuid for student id
+
 from flask import Flask, request, jsonify, render_template
 from flask_limiter import Limiter
 from flask_wtf import FlaskForm
@@ -5,6 +8,8 @@ from flask_wtf.file import FileField, FileRequired
 from flask_caching import Cache
 from flask_cors import CORS
 
+import re
+import uuid
 from PyPDF2 import PdfReader
 from datetime import datetime, date
 from supabase import create_client, Client
@@ -43,6 +48,11 @@ def extract_text_from_pdf(pdf):
             text += page.extract_text()
         return text
 
+def split_by_subject(text):
+    pattern = "Course:\s+([A-Z]{2})\s+.*?Teacher:\s+.*?\nComments:\s\n(.*?)(?=Course:|\Z)"
+    comments = re.findall(pattern, text, re.DOTALL)
+    return comments
+
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allows all origins
 
 CORS(app)
@@ -60,7 +70,7 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/analyze', methods=['POST'])
+@app.route('/api/analyze', methods=['POST'])
 def analyze_comments():
     if "file" not in request.files:
         return jsonify({"error": "No file uploaded"}), 400
@@ -71,6 +81,8 @@ def analyze_comments():
     purge_date = date(graduation_year, 7, 1)
     if not student_id:
         return jsonify({"error": "No student ID provided"}), 400
+    namespace = uuid.UUID("")
+    encrypted_id = str(uuid.uuid5(namespace, student_id))
     
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
@@ -78,24 +90,39 @@ def analyze_comments():
         file.save(filepath)
 
         report_card_text = extract_text_from_pdf(filepath)
-        history = supabase.table("student_history").select("*").eq("student_id", student_id).execute()
+        subjects = split_by_subject(report_card_text)
+        history = supabase.table("student_history")\
+            .select("subject", "progression_summary", "focus_rec")\
+            .eq("encrypted_id", encrypted_id)\
+            .order("subject")\
+            .execute()
 
         # Construct a prompt for Gemini
         prompt = f"""
-        Analyze the following student report card feedback:
-        {report_card_text}
+        Here are a student's midterm comments, structured as a list of ("subject", "comments") tuples:
+        {subjects}
 
         Student History: {history.data if history.data else "No history"}
-
-        Provide a **concise 75 to 150 word student feedback report** with:
-        - **2 strengths of student**
-        - **2 areas to improve**
-        - **how they have improved based on their previous comments**
         
-        Return the response in JSON formatted as:
-        "strengths": ["", ""],
-        "areas_for_improvement": ["", ""], 
-        "historical_analysis": [""]
+        The possible subject abbreviations are: 
+        EN (English), 
+        MA (math), 
+        SC (science), 
+        LA (language), 
+        HI (history), 
+        IN (interdisciplinary),
+        RP (religion and philosophy)
+        PA (performing arts),
+        VA (visual arts).
+
+        Your job is to:
+        1. Infer which course is which subject in the student midterm from the subject abbreviation. If the subject abbreviations do not match, leave the subject blank.
+        2. Identify clear patterns or changes in student performance, skills, and behavior.
+        3. Return a concise structured JSON with
+        - "subject": the subject from the list given above
+        - "progression_summary": 3-5 sentence summary of how the student has changed from previous comments
+        - "focus_recommendation": 1-3 skills or behaviors to improve on
+        
         """
 
         try:
@@ -133,7 +160,7 @@ def analyze_comments():
             if os.path.exists(filepath):
                 os.remove(filepath)
 
-app.route("/feedback", methods=["POST"])
+app.route("/api/feedback", methods=["POST"])
 def save_feedback():
     habits = request.form.get("habits")
     for habit, rating in habits.items():
