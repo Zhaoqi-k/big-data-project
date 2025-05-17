@@ -1,27 +1,51 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./App.css"
 
 function App() {
   const [reportCard, setReportCard] = useState(null); // Single input
   const [feedback, setFeedback] = useState(null);
+  const [studentID, setStudentID] = useState("");
+  const [graduationYear, setGraduationYear] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  //const [emojiFeedback, setEmojiFeedback] = useState(null);
 
-  const handleAnalyze = async () => {
+  const studyHabits = [
+    "Making flashcards",
+    "Teaching the material to others",
+    "Attending teacher consultations",
+    "Creating summary notes",
+    "Reviewing regularly",
+    "Practice problems",
+    "Group study sessions"
+  ];
+
+  const generateGraduationYears = () => {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    const baseYear = currentMonth >= 7 ? currentYear + 1 : currentYear;
+    return Array.from({length: 4}, (_, i) => baseYear + i);
+  };
+
+  const handleAnalyze = async(e) => {
     setLoading(true);
     setError(null);
     setFeedback(null);
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("file", reportCard);
+    formData.append("student_id", studentID);
+    formData.append("graduation_year", graduationYear);
 
     if (!reportCard) {
       setError("Please upload a PDF file");
       setLoading(false);
       return;
     }
-
-    const formData = new FormData();
-    formData.append("file", reportCard);
-
+   
     try {
       const response = await axios.post("http://127.0.0.1:5000/analyze", formData, {
         headers: {
@@ -39,6 +63,10 @@ function App() {
     }
   };
 
+  {
+    //handleHabits
+  }
+
   return (
     <div style={{
       display: "flex",
@@ -50,9 +78,10 @@ function App() {
       color: "#000",
       fontFamily: "Arial, sans-serif",
     }}>
-      <h1 style={{ color: "#e60000", marginBottom: "20px" }}>AI Report Card Analysis</h1>
+      <h1 style={{ color: "#e60000", marginBottom: "20px" }}>Interim Comments Analysis</h1>
       <input
         type="file"
+        value={reportCard}
         accept="pdf"
         onChange={(e) => setReportCard(e.target.files[0])}
         rows={6}
@@ -68,6 +97,24 @@ function App() {
           marginBottom: "15px",
         }}
       />
+
+      {
+        // input student id
+      }
+      <h1 style={{color: "#e60000", marginBottom: "20px"}}>Student ID: </h1>
+      <input type="text" value={studentID} onChange={(e) => setStudentID(e.target.value)} required></input>
+
+      {
+        // select dropdown graduation year
+      }
+      <h1 style={{color: "#e60000", marginBottom: "20px"}}>Graduation Year: </h1>
+      <select value={graduationYear} onChange={(e) => setGraduationYear(e.target.value)} required>
+        <option value="">Select Year</option>
+        {generateGraduationYears().map(year => (
+          <option key={year} value={year}>{year}</option>
+        ))}
+      </select>
+
       <button
         onClick={handleAnalyze}
         style={{
@@ -94,7 +141,7 @@ function App() {
           textAlign: "left",
           position: "relative"
         }}>
-          <h3 style={{ color: "#e60000" }}>AI Feedback</h3>
+          <h3 style={{ color: "#e60000" }}>AI Analysis</h3>
           <h4><strong>Strengths:</strong></h4>
           <ul>
             {feedback.strengths.map((strength, index) => (
@@ -109,29 +156,9 @@ function App() {
           </ul>
           <h4><strong>Progress from Previous Years:</strong></h4>
           <p>{historical_analysis}</p>
-          {/*
-          <div style={{
-            display: "flex",
-            justifyContent: "center",
-            marginTop: "10px"
-          }}>
-            {['🔥', '❤️', '😡', '😊', '😭'].map((emoji) => (
-              <span
-                key={emoji}
-                onClick={() => setEmojiFeedback(emoji)}
-                style={{
-                  fontSize: "24px",
-                  cursor: "pointer",
-                  margin: "5px",
-                  padding: "5px"
-                }}
-              >
-                {emoji}
-              </span>
-            ))}
-          </div>
-          {emojiFeedback && <p style={{ textAlign: "center", marginTop: "5px" }}>You reacted with: {emojiFeedback}</p>}
-          */}
+          
+          
+
         </div> 
         
       )}
