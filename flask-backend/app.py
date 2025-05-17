@@ -1,6 +1,3 @@
-# construct new prompt for llm
-# use uuid for student id
-
 from flask import Flask, request, jsonify, render_template
 from flask_limiter import Limiter
 from flask_wtf import FlaskForm
@@ -130,20 +127,22 @@ def analyze_comments():
             response = model.generate_content(prompt)
             response_text = response.text.strip()
 
-            response_text = response_text.replace("```json", "").replace("```", "").strip()
             
             # Save student history to supabase
             supabase.table("student_history").insert({
                 "encrypted_id": encrypted_id,
+                "subject": response_text("subject"),
                 "date": datetime.now().isoformat(),
-                "analysis": response_text,
+                "progression_summary": response_text("progression_summary"),
+                "focus_rec": response_text("focus_recommendation"),
                 "purge_after": purge_date.isoformat()
             }).execute()
+            
+            response_text = response_text.replace("```json", "").replace("```", "").strip()
 
             logging.debug(f"Cleaned Response from Gemini: {response_text}")
 
             response_json = json.loads(response)
-
 
             logging.debug(f"Response from Gemini: {response_json}")
 
